@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日常的微光 - 預告片概念動態預覽</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;600&display=swap');
+
+        :root {
+            --cold-bg: #0a0f16;
+            --warm-bg: #d1b894;
+            --text-main: #ffffff;
+            --text-dark: #2c241b;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Noto Serif TC', "PMingLiU", serif;
+            background-color: var(--cold-bg);
+            color: var(--text-main);
+            overflow: hidden;
+            transition: background-color 2s ease-in-out;
+        }
+
+        .scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out, transform 1s ease-out;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            pointer-events: none; /* Prevent clicks on hidden scenes */
+        }
+
+        .scene.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .scene.zooming {
+            transform: scale(1.05);
+        }
+
+        /* Initial Play Button */
+        #start-btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background-color: transparent;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+            pointer-events: auto;
+        }
+
+        #start-btn:hover {
+            background-color: white;
+            color: black;
+        }
+
+        /* Typography */
+        .subtitle {
+            font-size: 1.5rem;
+            font-weight: 300;
+            letter-spacing: 4px;
+            line-height: 1.8;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .chaos-text {
+            font-family: sans-serif;
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.7);
+            margin: 5px;
+            opacity: 0;
+        }
+
+        .title-main {
+            font-size: 4rem;
+            font-weight: 600;
+            letter-spacing: 8px;
+            margin-bottom: 10px;
+        }
+
+        .title-sub {
+            font-size: 1.2rem;
+            letter-spacing: 6px;
+            opacity: 0.8;
+            margin-bottom: 40px;
+        }
+
+        .cast {
+            font-size: 1rem;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 20px;
+        }
+
+        /* Camera Shutter Effect */
+        #shutter {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .flash {
+            animation: flashAnim 0.3s ease-out;
+        }
+
+        @keyframes flashAnim {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Warm Mode overrides */
+        body.warm-mode {
+            background: linear-gradient(135deg, #c39a6b 0%, #e8d0a9 100%);
+            color: var(--text-dark);
+        }
+
+        body.warm-mode .subtitle {
+            text-shadow: 0 2px 10px rgba(255,255,255,0.3);
+        }
+
+        body.warm-mode .title-main, body.warm-mode .title-sub {
+            color: var(--text-dark);
+        }
+        
+        body.warm-mode .cast {
+            color: rgba(44, 36, 27, 0.7);
+        }
+
+        /* Viewfinder frame */
+        .viewfinder {
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            right: 5%;
+            bottom: 5%;
+            border: 1px solid rgba(0,0,0,0.1);
+            pointer-events: none;
+            display: none;
+        }
+        
+        body.warm-mode .viewfinder {
+            display: block;
+        }
+        
+        .viewfinder::before, .viewfinder::after {
+            content: ''; position: absolute; width: 30px; height: 30px;
+        }
+        .viewfinder::before { top: -1px; left: -1px; border-top: 2px solid var(--text-dark); border-left: 2px solid var(--text-dark); }
+        .viewfinder::after { bottom: -1px; right: -1px; border-bottom: 2px solid var(--text-dark); border-right: 2px solid var(--text-dark); }
+
+    </style>
+</head>
+<body>
+
+    <div id="shutter"></div>
+    <div class="viewfinder"></div>
+
+    <!-- Scene 0: Start Button -->
+    <div id="scene-0" class="scene active">
+        <h2 style="font-weight:300; letter-spacing:3px; margin-bottom: 30px; opacity:0.8;">電影預告概念展示</h2>
+        <button id="start-btn">播放動態預覽</button>
+        <p style="font-size: 0.8rem; opacity: 0.5; margin-top: 20px; font-family: sans-serif;">建議開啟音量想像配樂，並以全螢幕觀看</p>
+    </div>
+
+    <!-- Scene 1: The Chaos -->
+    <div id="scene-1" class="scene">
+        <div id="chaos-container"></div>
+    </div>
+
+    <!-- Scene 2: The Breath -->
+    <div id="scene-2" class="scene">
+        <div class="subtitle">我以為停下來，世界就會毀滅。</div>
+    </div>
+
+    <!-- Scene 3: The Bookstore (Gong Yoo) -->
+    <div id="scene-3" class="scene zooming">
+        <div class="subtitle">「跑累的時候，就隨便找本書坐下吧。」</div>
+        <div style="margin-top: 15px; font-size: 0.9rem; opacity: 0.7;">—— 哲宇 (書店店長)</div>
+    </div>
+
+    <!-- Scene 4: The Grandma (Youn Yuh-jung) -->
+    <div id="scene-4" class="scene zooming">
+        <div class="subtitle">「走得那麼快，把靈魂都弄丟在後面了。」</div>
+        <div style="margin-top: 15px; font-size: 0.9rem; opacity: 0.7;">—— 明順 (樓下奶奶)</div>
+    </div>
+
+    <!-- Scene 5: The Photographer (Kim Seon-ho) -->
+    <div id="scene-5" class="scene zooming">
+        <div class="subtitle">「看這裡！對，就是這個不用硬撐的表情！」</div>
+        <div style="margin-top: 15px; font-size: 0.9rem; opacity: 0.7;">—— 宇振 (街頭攝影師)</div>
+    </div>
+
+    <!-- Scene 6: The Realization -->
+    <div id="scene-6" class="scene">
+        <div class="subtitle">最非凡的故事，<br>就發生在妳忽略的日常之中。</div>
+    </div>
+
+    <!-- Scene 7: Title Reveal -->
+    <div id="scene-7" class="scene">
+        <div class="title-main">日常的微光</div>
+        <div class="title-sub">The Shimmer of Ordinary</div>
+        <div class="subtitle" style="font-size: 1rem; margin-top: 30px;">2026.08.08 陪妳停下腳步</div>
+        <div class="cast">領銜主演：妳 ｜ 聯合演出：孔劉 · 尹汝貞 · 金宣虎</div>
+        <button id="restart-btn" style="margin-top: 40px; padding: 10px 20px; background: transparent; border: 1px solid var(--text-dark); color: var(--text-dark); border-radius: 20px; cursor: pointer; opacity: 0.6; font-family: inherit;">再次觀看</button>
+    </div>
+
+    <script>
+        const scenes = document.querySelectorAll('.scene');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const body = document.body;
+        const shutter = document.getElementById('shutter');
+        const chaosContainer = document.getElementById('chaos-container');
+
+        // Utility function for pausing execution
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // Switch active scene
+        function showScene(index) {
+            scenes.forEach(s => s.classList.remove('active'));
+            if(scenes[index]) {
+                scenes[index].classList.add('active');
+            }
+        }
+
+        // Camera Shutter Effect
+        async function triggerShutter() {
+            shutter.classList.add('flash');
+            await sleep(300);
+            shutter.classList.remove('flash');
+        }
+
+        // Generate Chaos Text for Scene 1
+        const chaosPhrases = [
+            "專案進度報告.pptx", "未接來電 (3)", "您有一封新郵件", 
+            "LINE: 客戶說要改需求...", "02:14 AM", "行事曆：滿檔", 
+            "會議通知：10分鐘後開始", "壓力", "失眠"
+        ];
+
+        async function playChaos() {
+            chaosContainer.innerHTML = '';
+            for (let i = 0; i < 15; i++) {
+                const span = document.createElement('div');
+                span.className = 'chaos-text';
+                span.innerText = chaosPhrases[Math.floor(Math.random() * chaosPhrases.length)];
+                span.style.position = 'absolute';
+                span.style.left = `${Math.random() * 80 + 10}%`;
+                span.style.top = `${Math.random() * 80 + 10}%`;
+                span.style.transform = `translate(-50%, -50%) scale(${Math.random() * 1.5 + 0.5})`;
+                chaosContainer.appendChild(span);
+                
+                // Fade in
+                setTimeout(() => { span.style.opacity = 1; }, 50);
+                // Fade out fast
+                setTimeout(() => { span.style.opacity = 0; }, 800);
+                
+                await sleep(150); // Speed of appearing text
+            }
+        }
+
+        // Main Timeline
+        async function playTrailer() {
+            // Reset
+            body.classList.remove('warm-mode');
+            
+            // Start Sequence
+            showScene(1);
+            await playChaos();
+            await sleep(500);
+            
+            showScene(2); // "我以為停下來..."
+            await sleep(3000);
+            
+            // The Turning Point (Camera Shutter)
+            await triggerShutter();
+            body.classList.add('warm-mode'); // Switch to warm colors
+            await sleep(500);
+            
+            showScene(3); // Gong Yoo
+            await sleep(3500);
+            
+            await triggerShutter();
+            showScene(4); // Youn Yuh-jung
+            await sleep(3500);
+            
+            await triggerShutter();
+            showScene(5); // Kim Seon-ho
+            await sleep(3500);
+            
+            showScene(6); // Core Message
+            await sleep(4000);
+            
+            showScene(7); // Title
+        }
+
+        startBtn.addEventListener('click', () => {
+            showScene(-1); // Hide start screen
+            playTrailer();
+        });
+
+        restartBtn.addEventListener('click', () => {
+            showScene(0);
+        });
+
+    </script>
+</body>
+</html>
